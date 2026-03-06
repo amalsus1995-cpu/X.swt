@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>x.swt - ملفي الشخصي</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase.js"></script>
+
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Tahoma,Arial,sans-serif;
+      background:linear-gradient(180deg,#f8f9fb,#edf1f5);
+      color:#222;
+    }
+    .app{
+      max-width:430px;
+      margin:0 auto;
+      min-height:100vh;
+      padding:14px 14px 95px;
+    }
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .back-btn{
+      border:none;
+      background:#fff;
+      padding:12px 16px;
+      border-radius:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,.08);
+      cursor:pointer;
+      font-weight:bold;
+    }
+    .card{
+      background:#fff;
+      border:1px solid #e6e6e6;
+      border-radius:22px;
+      padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.08);
+      margin-bottom:14px;
+    }
+    .title{
+      font-size:24px;
+      font-weight:bold;
+      margin-bottom:6px;
+    }
+    .muted{
+      color:#666;
+      font-size:13px;
+      line-height:1.7;
+    }
+    .line{
+      padding:12px 0;
+      border-bottom:1px solid #efefef;
+      font-size:15px;
+    }
+    .line:last-child{
+      border-bottom:none;
+    }
+    .btn{
+      width:100%;
+      border:none;
+      border-radius:16px;
+      padding:15px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      background:linear-gradient(135deg,#eef2f6,#ffffff);
+      box-shadow:0 8px 20px rgba(0,0,0,.06);
+      margin-top:10px;
+    }
+    .btn-dark{
+      background:#111827;
+      color:#fff;
+    }
+    .bottom-nav{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:10px;
+      width:min(430px, calc(100% - 20px));
+      background:rgba(255,255,255,.96);
+      border:1px solid #e8e8e8;
+      border-radius:24px;
+      display:flex;
+      justify-content:space-around;
+      padding:12px 8px;
+      box-shadow:0 16px 35px rgba(0,0,0,.12);
+      backdrop-filter:blur(10px);
+      z-index:50;
+    }
+    .nav-item{
+      text-align:center;
+      font-size:12px;
+      color:#666;
+      text-decoration:none;
+      flex:1;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <div class="top">
+      <button class="back-btn" onclick="location.href='index.html'">رجوع</button>
+      <div style="font-weight:bold;">ملفي الشخصي</div>
+    </div>
+
+    <div class="card">
+      <div class="title">بيانات الحساب</div>
+      <div class="muted">هذه المعلومات مرتبطة بحسابك الحالي.</div>
+
+      <div class="line">الاسم: <strong id="fullNameText">---</strong></div>
+      <div class="line">الإيميل: <strong id="emailText">---</strong></div>
+      <div class="line">UID: <strong id="uidText">---</strong></div>
+      <div class="line">الحالة: <strong id="statusText">---</strong></div>
+      <div class="line">VIP: <strong id="vipText">---</strong></div>
+      <div class="line">التحقق: <strong id="kycText">---</strong></div>
+      <div class="line">عدد الدعوات: <strong id="refText">0</strong></div>
+      <div class="line">كود الدعوة: <strong id="refCodeText">---</strong></div>
+
+      <button class="btn" onclick="copyReferralCode()">نسخ كود الدعوة</button>
+      <button class="btn" onclick="copyReferralLink()">نسخ رابط الدعوة</button>
+    </div>
+
+    <div class="card">
+      <div class="title">إدارة الحساب</div>
+      <button class="btn" onclick="location.href='kyc.html'">التحقق من الهوية</button>
+      <button class="btn" onclick="location.href='support.html'">تواصل مع الإدارة</button>
+      <button class="btn btn-dark" onclick="logoutUser()">تسجيل الخروج</button>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item">الرئيسية</a>
+    <a href="market.html" class="nav-item">السوق</a>
+    <a href="sync.html" class="nav-item">الكود</a>
+    <a href="assets.html" class="nav-item">الأصول</a>
+    <a href="team.html" class="nav-item">الفريق</a>
+  </div>
+
+  <script>
+    let currentProfile = null;
+
+    async function loadProfilePage(){
+      const user = await ensureLoggedIn();
+      if(!user) return;
+
+      const profile = await getMyProfile();
+      currentProfile = profile;
+
+      if(!profile) return;
+
+      document.getElementById("fullNameText").textContent = profile.full_name || "---";
+      document.getElementById("emailText").textContent = profile.email || "---";
+      document.getElementById("uidText").textContent = profile.uid || "---";
+      document.getElementById("statusText").textContent =
+        profile.activation_status === "active" ? "مفعل" : "غير مفعل";
+      document.getElementById("vipText").textContent =
+        profile.vip_status === "vip" ? "VIP" : "عادي";
+      document.getElementById("kycText").textContent = profile.kyc_status || "not_submitted";
+      document.getElementById("refText").textContent = profile.referral_count || 0;
+      document.getElementById("refCodeText").textContent = profile.referral_code || "---";
+    }
+
+    async function copyReferralCode(){
+      if(!currentProfile?.referral_code){
+        alert("لا يوجد كود دعوة");
+        return;
+      }
+      await navigator.clipboard.writeText(currentProfile.referral_code);
+      alert("تم نسخ كود الدعوة");
+    }
+
+    async function copyReferralLink(){
+      if(!currentProfile?.referral_code){
+        alert("لا يوجد رابط دعوة");
+        return;
+      }
+      const link = location.origin + "/register.html?ref=" + currentProfile.referral_code;
+      await navigator.clipboard.writeText(link);
+      alert("تم نسخ رابط الدعوة");
+    }
+
+    loadProfilePage();
+  </script>
+</body>
+</html>
