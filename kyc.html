@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>x.swt - التحقق من الهوية</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="supabase.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Tahoma;
+background:linear-gradient(180deg,#f8f9fb,#edf1f5);
+}
+
+.app{
+max-width:430px;
+margin:auto;
+padding:14px 14px 95px;
+}
+
+.card{
+background:#fff;
+border-radius:22px;
+padding:16px;
+box-shadow:0 12px 30px rgba(0,0,0,.08);
+margin-bottom:14px;
+}
+
+.title{
+font-size:24px;
+font-weight:bold;
+margin-bottom:8px;
+}
+
+.muted{
+font-size:13px;
+color:#666;
+line-height:1.7;
+}
+
+.field{
+margin-top:10px;
+}
+
+input,select{
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #ddd;
+font-size:15px;
+}
+
+.btn{
+width:100%;
+border:none;
+border-radius:16px;
+padding:15px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+background:#111;
+color:#fff;
+margin-top:12px;
+}
+
+.preview{
+width:100%;
+margin-top:10px;
+border-radius:12px;
+}
+
+.status{
+padding:10px;
+border-radius:12px;
+background:#f3f4f6;
+font-size:14px;
+margin-top:10px;
+}
+
+.bottom-nav{
+position:fixed;
+left:50%;
+transform:translateX(-50%);
+bottom:10px;
+width:min(430px, calc(100% - 20px));
+background:#fff;
+border-radius:24px;
+display:flex;
+justify-content:space-around;
+padding:12px;
+box-shadow:0 16px 35px rgba(0,0,0,.12);
+}
+
+.nav-item{
+font-size:12px;
+text-decoration:none;
+color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="card">
+
+<div class="title">التحقق من الهوية</div>
+
+<div class="muted">
+قم برفع صورة الهوية وصورة سيلفي للتحقق من الحساب.
+</div>
+
+<div class="field">
+<input id="fullNameInput" placeholder="الاسم الكامل">
+</div>
+
+<div class="field">
+<input id="idNumberInput" placeholder="رقم الهوية">
+</div>
+
+<div class="field">
+<select id="countryInput">
+<option value="">اختر الدولة</option>
+<option>تركيا</option>
+<option>سوريا</option>
+<option>العراق</option>
+<option>السعودية</option>
+<option>مصر</option>
+</select>
+</div>
+
+<div class="field">
+<label>صورة الهوية</label>
+<input type="file" id="idImageInput">
+<img id="idPreview" class="preview">
+</div>
+
+<div class="field">
+<label>صورة سيلفي</label>
+<input type="file" id="selfieInput">
+<img id="selfiePreview" class="preview">
+</div>
+
+<button class="btn" onclick="submitKyc()">
+إرسال طلب التحقق
+</button>
+
+<div class="status" id="kycStatus">
+حالة الطلب: لم يتم الإرسال
+</div>
+
+</div>
+
+</div>
+
+
+<div class="bottom-nav">
+<a href="index.html" class="nav-item">الرئيسية</a>
+<a href="market.html" class="nav-item">السوق</a>
+<a href="sync.html" class="nav-item">الكود</a>
+<a href="assets.html" class="nav-item">الأصول</a>
+<a href="team.html" class="nav-item">الفريق</a>
+</div>
+
+
+<script>
+
+const idImageInput=document.getElementById("idImageInput")
+const selfieInput=document.getElementById("selfieInput")
+
+idImageInput.onchange=e=>{
+document.getElementById("idPreview").src=URL.createObjectURL(e.target.files[0])
+}
+
+selfieInput.onchange=e=>{
+document.getElementById("selfiePreview").src=URL.createObjectURL(e.target.files[0])
+}
+
+
+async function submitKyc(){
+
+const user=await ensureLoggedIn()
+if(!user) return
+
+const profile=await getMyProfile()
+
+const fullName=document.getElementById("fullNameInput").value.trim()
+const idNumber=document.getElementById("idNumberInput").value.trim()
+const country=document.getElementById("countryInput").value
+
+const idFile=idImageInput.files[0]
+const selfieFile=selfieInput.files[0]
+
+if(!fullName || !idNumber || !country || !idFile || !selfieFile){
+alert("املأ جميع الحقول وارفع الصور")
+return
+}
+
+const idPath=`${user.id}_id_${Date.now()}`
+const selfiePath=`${user.id}_selfie_${Date.now()}`
+
+
+await supabaseClient.storage
+.from("kyc-documents")
+.upload(idPath,idFile)
+
+await supabaseClient.storage
+.from("kyc-documents")
+.upload(selfiePath,selfieFile)
+
+
+const { error } = await supabaseClient
+.from("kyc_requests")
+.insert({
+user_id:user.id,
+uid_number:profile.uid,
+full_name:fullName,
+country:country,
+id_number:idNumber,
+id_image_url:idPath,
+selfie_image_url:selfiePath,
+status:"pending"
+})
+
+if(error){
+alert(error.message)
+return
+}
+
+document.getElementById("kycStatus").innerText="تم إرسال الطلب — بانتظار موافقة الإدارة"
+
+}
+
+</script>
+
+</body>
+</html>
