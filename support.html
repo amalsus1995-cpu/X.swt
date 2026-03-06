@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>x.swt - الدعم</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="supabase.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:Tahoma;
+background:linear-gradient(180deg,#f8f9fb,#edf1f5);
+}
+
+.app{
+max-width:430px;
+margin:auto;
+padding:14px 14px 95px;
+}
+
+.card{
+background:#fff;
+border-radius:22px;
+padding:16px;
+box-shadow:0 12px 30px rgba(0,0,0,.08);
+margin-bottom:14px;
+}
+
+.title{
+font-size:24px;
+font-weight:bold;
+margin-bottom:8px;
+}
+
+.muted{
+font-size:13px;
+color:#666;
+line-height:1.7;
+}
+
+.field{
+margin-top:10px;
+}
+
+input,textarea{
+width:100%;
+padding:14px;
+border-radius:14px;
+border:1px solid #ddd;
+font-size:15px;
+}
+
+textarea{
+min-height:120px;
+resize:none;
+}
+
+.btn{
+width:100%;
+border:none;
+border-radius:16px;
+padding:15px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer;
+background:#111;
+color:#fff;
+margin-top:10px;
+}
+
+.ticket{
+padding:12px 0;
+border-bottom:1px solid #eee;
+font-size:14px;
+line-height:1.6;
+}
+
+.ticket:last-child{
+border-bottom:none;
+}
+
+.status{
+display:inline-block;
+padding:5px 10px;
+border-radius:999px;
+font-size:12px;
+margin-top:6px;
+background:#f3f4f6;
+}
+
+.bottom-nav{
+position:fixed;
+left:50%;
+transform:translateX(-50%);
+bottom:10px;
+width:min(430px, calc(100% - 20px));
+background:#fff;
+border-radius:24px;
+display:flex;
+justify-content:space-around;
+padding:12px;
+box-shadow:0 16px 35px rgba(0,0,0,.12);
+}
+
+.nav-item{
+font-size:12px;
+text-decoration:none;
+color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="card">
+
+<div class="title">الدعم الفني</div>
+
+<div class="muted">
+إذا كان لديك مشكلة أو استفسار يمكنك إرسال رسالة للإدارة.
+</div>
+
+<div class="field">
+<input id="subjectInput" placeholder="عنوان الرسالة">
+</div>
+
+<div class="field">
+<textarea id="messageInput" placeholder="اكتب رسالتك هنا"></textarea>
+</div>
+
+<button class="btn" onclick="sendTicket()">
+إرسال الرسالة
+</button>
+
+</div>
+
+
+<div class="card">
+
+<div class="title" style="font-size:20px;">رسائلي السابقة</div>
+
+<div id="ticketList">
+جاري التحميل...
+</div>
+
+</div>
+
+</div>
+
+
+<div class="bottom-nav">
+<a href="index.html" class="nav-item">الرئيسية</a>
+<a href="market.html" class="nav-item">السوق</a>
+<a href="sync.html" class="nav-item">الكود</a>
+<a href="assets.html" class="nav-item">الأصول</a>
+<a href="team.html" class="nav-item">الفريق</a>
+</div>
+
+
+<script>
+
+async function sendTicket(){
+
+const user = await ensureLoggedIn()
+if(!user) return
+
+const subject = document.getElementById("subjectInput").value.trim()
+const message = document.getElementById("messageInput").value.trim()
+
+if(!subject || !message){
+alert("اكتب عنوان الرسالة والرسالة")
+return
+}
+
+const { error } = await supabaseClient
+.from("support_tickets")
+.insert({
+user_id:user.id,
+subject:subject,
+message:message,
+status:"open"
+})
+
+if(error){
+alert(error.message)
+return
+}
+
+alert("تم إرسال الرسالة")
+
+document.getElementById("subjectInput").value=""
+document.getElementById("messageInput").value=""
+
+loadTickets()
+
+}
+
+
+async function loadTickets(){
+
+const user = await ensureLoggedIn()
+if(!user) return
+
+const { data } = await supabaseClient
+.from("support_tickets")
+.select("*")
+.eq("user_id",user.id)
+.order("created_at",{ascending:false})
+
+const box=document.getElementById("ticketList")
+
+if(!data || !data.length){
+box.innerHTML="لا توجد رسائل"
+return
+}
+
+box.innerHTML=""
+
+data.forEach(item=>{
+
+const div=document.createElement("div")
+div.className="ticket"
+
+div.innerHTML=`
+<div><strong>${item.subject}</strong></div>
+<div>${item.message}</div>
+<div class="status">الحالة: ${item.status}</div>
+`
+
+box.appendChild(div)
+
+})
+
+}
+
+loadTickets()
+
+</script>
+
+</body>
+</html>
