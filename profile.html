@@ -10,24 +10,33 @@
 
   <style>
     *{box-sizing:border-box}
+
     body{
       margin:0;
       font-family:Tahoma,Arial,sans-serif;
       background:linear-gradient(180deg,#f8f9fb,#edf1f5);
       color:#222;
     }
+
     .app{
       max-width:430px;
       margin:0 auto;
       min-height:100vh;
       padding:14px 14px 95px;
     }
+
     .top{
       display:flex;
       align-items:center;
       justify-content:space-between;
       margin-bottom:14px;
     }
+
+    .top-title{
+      font-size:20px;
+      font-weight:bold;
+    }
+
     .back-btn{
       border:none;
       background:#fff;
@@ -36,7 +45,9 @@
       box-shadow:0 8px 20px rgba(0,0,0,.08);
       cursor:pointer;
       font-weight:bold;
+      font-size:15px;
     }
+
     .card{
       background:#fff;
       border:1px solid #e6e6e6;
@@ -45,24 +56,46 @@
       box-shadow:0 12px 30px rgba(0,0,0,.08);
       margin-bottom:14px;
     }
+
     .title{
       font-size:24px;
       font-weight:bold;
       margin-bottom:6px;
     }
+
     .muted{
       color:#666;
       font-size:13px;
       line-height:1.7;
     }
+
     .line{
       padding:12px 0;
       border-bottom:1px solid #efefef;
       font-size:15px;
+      line-height:1.8;
     }
+
     .line:last-child{
       border-bottom:none;
     }
+
+    .value{
+      font-weight:bold;
+    }
+
+    .code-box{
+      margin-top:12px;
+      padding:16px;
+      border:1px dashed #cbd5e1;
+      border-radius:16px;
+      background:#f8fafc;
+      text-align:center;
+      font-size:22px;
+      font-weight:bold;
+      letter-spacing:1px;
+    }
+
     .btn{
       width:100%;
       border:none;
@@ -75,10 +108,39 @@
       box-shadow:0 8px 20px rgba(0,0,0,.06);
       margin-top:10px;
     }
+
     .btn-dark{
       background:#111827;
       color:#fff;
     }
+
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid #e5e7eb;
+      background:#f8fafc;
+    }
+
+    .pill.ok{
+      color:#166534;
+      background:#ecfdf5;
+      border-color:#bbf7d0;
+    }
+
+    .pill.warn{
+      color:#92400e;
+      background:#fff7ed;
+      border-color:#fed7aa;
+    }
+
+    .pill.gray{
+      color:#374151;
+      background:#f3f4f6;
+      border-color:#e5e7eb;
+    }
+
     .bottom-nav{
       position:fixed;
       left:50%;
@@ -95,6 +157,7 @@
       backdrop-filter:blur(10px);
       z-index:50;
     }
+
     .nav-item{
       text-align:center;
       font-size:12px;
@@ -108,31 +171,37 @@
   <div class="app">
 
     <div class="top">
+      <div class="top-title">ملفي الشخصي</div>
       <button class="back-btn" onclick="location.href='index.html'">رجوع</button>
-      <div style="font-weight:bold;">ملفي الشخصي</div>
     </div>
 
     <div class="card">
       <div class="title">بيانات الحساب</div>
       <div class="muted">هذه المعلومات مرتبطة بحسابك الحالي.</div>
 
-      <div class="line">الاسم: <strong id="fullNameText">---</strong></div>
-      <div class="line">الإيميل: <strong id="emailText">---</strong></div>
-      <div class="line">UID: <strong id="uidText">---</strong></div>
-      <div class="line">الحالة: <strong id="statusText">---</strong></div>
-      <div class="line">VIP: <strong id="vipText">---</strong></div>
-      <div class="line">التحقق: <strong id="kycText">---</strong></div>
-      <div class="line">عدد الدعوات: <strong id="refText">0</strong></div>
-      <div class="line">كود الدعوة: <strong id="refCodeText">---</strong></div>
+      <div class="line">الاسم: <span class="value" id="fullNameText">---</span></div>
+      <div class="line">الإيميل: <span class="value" id="emailText">---</span></div>
+      <div class="line">UID: <span class="value" id="uidText">---</span></div>
+      <div class="line">الحالة: <span class="value" id="statusText">---</span></div>
+      <div class="line">VIP: <span class="value" id="vipText">---</span></div>
+      <div class="line">التحقق: <span class="value" id="kycText">---</span></div>
+      <div class="line">عدد الدعوات: <span class="value" id="refText">0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="title" style="font-size:20px;">الدعوة الخاصة بك</div>
+      <div class="muted">شارك كود الدعوة أو الرابط الخاص بك.</div>
+
+      <div class="code-box" id="refCodeText">------</div>
 
       <button class="btn" onclick="copyReferralCode()">نسخ كود الدعوة</button>
       <button class="btn" onclick="copyReferralLink()">نسخ رابط الدعوة</button>
     </div>
 
     <div class="card">
-      <div class="title">إدارة الحساب</div>
+      <div class="title" style="font-size:20px;">إدارة الحساب</div>
       <button class="btn" onclick="location.href='kyc.html'">التحقق من الهوية</button>
-      <button class="btn" onclick="location.href='support.html'">تواصل مع الإدارة</button>
+      <button class="btn" onclick="location.href='support.html'">الدعم الفني</button>
       <button class="btn btn-dark" onclick="logoutUser()">تسجيل الخروج</button>
     </div>
 
@@ -149,25 +218,58 @@
   <script>
     let currentProfile = null;
 
+    function renderStatus(profile){
+      if(profile.activation_status === "active"){
+        return "مفعل";
+      }
+      return "غير مفعل";
+    }
+
+    function renderVip(profile){
+      return profile.vip_status === "vip" ? "VIP" : "عادي";
+    }
+
+    function renderKyc(profile){
+      if(profile.kyc_status === "approved") return "مقبول";
+      if(profile.kyc_status === "rejected") return "مرفوض";
+      if(profile.kyc_status === "pending") return "قيد المراجعة";
+      return "لم يتم الإرسال";
+    }
+
     async function loadProfilePage(){
       const user = await ensureLoggedIn();
       if(!user) return;
 
-      const profile = await getMyProfile();
+      const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if(error || !profile){
+        console.log("Profile load error:", error);
+
+        document.getElementById("fullNameText").textContent = "---";
+        document.getElementById("emailText").textContent = user.email || "---";
+        document.getElementById("uidText").textContent = "---";
+        document.getElementById("statusText").textContent = "---";
+        document.getElementById("vipText").textContent = "---";
+        document.getElementById("kycText").textContent = "---";
+        document.getElementById("refText").textContent = "0";
+        document.getElementById("refCodeText").textContent = "------";
+        return;
+      }
+
       currentProfile = profile;
 
-      if(!profile) return;
-
       document.getElementById("fullNameText").textContent = profile.full_name || "---";
-      document.getElementById("emailText").textContent = profile.email || "---";
+      document.getElementById("emailText").textContent = profile.email || user.email || "---";
       document.getElementById("uidText").textContent = profile.uid || "---";
-      document.getElementById("statusText").textContent =
-        profile.activation_status === "active" ? "مفعل" : "غير مفعل";
-      document.getElementById("vipText").textContent =
-        profile.vip_status === "vip" ? "VIP" : "عادي";
-      document.getElementById("kycText").textContent = profile.kyc_status || "not_submitted";
+      document.getElementById("statusText").textContent = renderStatus(profile);
+      document.getElementById("vipText").textContent = renderVip(profile);
+      document.getElementById("kycText").textContent = renderKyc(profile);
       document.getElementById("refText").textContent = profile.referral_count || 0;
-      document.getElementById("refCodeText").textContent = profile.referral_code || "---";
+      document.getElementById("refCodeText").textContent = profile.referral_code || "------";
     }
 
     async function copyReferralCode(){
@@ -175,6 +277,7 @@
         alert("لا يوجد كود دعوة");
         return;
       }
+
       await navigator.clipboard.writeText(currentProfile.referral_code);
       alert("تم نسخ كود الدعوة");
     }
@@ -184,6 +287,7 @@
         alert("لا يوجد رابط دعوة");
         return;
       }
+
       const link = location.origin + "/register.html?ref=" + currentProfile.referral_code;
       await navigator.clipboard.writeText(link);
       alert("تم نسخ رابط الدعوة");
