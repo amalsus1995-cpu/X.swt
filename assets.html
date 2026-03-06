@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>x.swt - الأصول</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="supabase.js"></script>
+
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Tahoma,Arial,sans-serif;
+      background:linear-gradient(180deg,#f8f9fb,#edf1f5);
+      color:#222;
+    }
+    .app{
+      max-width:430px;
+      margin:0 auto;
+      min-height:100vh;
+      padding:14px 14px 95px;
+    }
+    .card{
+      background:#fff;
+      border:1px solid #e6e6e6;
+      border-radius:22px;
+      padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.08);
+      margin-bottom:14px;
+    }
+    .title{
+      font-size:24px;
+      font-weight:bold;
+      margin-bottom:8px;
+    }
+    .sub{
+      font-size:18px;
+      font-weight:bold;
+      margin-bottom:10px;
+    }
+    .muted{
+      color:#666;
+      font-size:13px;
+      line-height:1.7;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+    .mini{
+      background:#fff;
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 8px 20px rgba(0,0,0,.06);
+      border:1px solid #f0f0f0;
+    }
+    .mini h3{
+      margin:0 0 8px;
+      font-size:14px;
+      color:#666;
+    }
+    .mini .num{
+      font-size:24px;
+      font-weight:bold;
+    }
+    .field{
+      margin-bottom:12px;
+    }
+    input,textarea{
+      width:100%;
+      padding:14px;
+      border:1px solid #d4d7dd;
+      border-radius:14px;
+      font-size:15px;
+      background:#fff;
+      outline:none;
+    }
+    .btn{
+      width:100%;
+      border:none;
+      border-radius:16px;
+      padding:15px;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      background:linear-gradient(135deg,#eef2f6,#ffffff);
+      box-shadow:0 8px 20px rgba(0,0,0,.06);
+      margin-top:6px;
+    }
+    .btn-dark{
+      background:#111827;
+      color:#fff;
+    }
+    .line{
+      padding:12px 0;
+      border-bottom:1px solid #efefef;
+      font-size:14px;
+      line-height:1.7;
+    }
+    .line:last-child{
+      border-bottom:none;
+    }
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#f3f4f6;
+      border:1px solid #e5e7eb;
+      font-size:12px;
+      margin-top:8px;
+    }
+    .bottom-nav{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:10px;
+      width:min(430px, calc(100% - 20px));
+      background:rgba(255,255,255,.96);
+      border:1px solid #e8e8e8;
+      border-radius:24px;
+      display:flex;
+      justify-content:space-around;
+      padding:12px 8px;
+      box-shadow:0 16px 35px rgba(0,0,0,.12);
+      backdrop-filter:blur(10px);
+      z-index:50;
+    }
+    .nav-item{
+      text-align:center;
+      font-size:12px;
+      color:#666;
+      text-decoration:none;
+      flex:1;
+    }
+    .nav-item.active{
+      color:#111;
+      font-weight:bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <div class="card">
+      <div class="title">الأصول</div>
+      <div class="muted">إدارة الرصيد، الإيداع، والسحب.</div>
+
+      <div class="grid">
+        <div class="mini">
+          <h3>الرصيد الحالي</h3>
+          <div class="num" id="balanceText">0</div>
+        </div>
+        <div class="mini">
+          <h3>رأس المال</h3>
+          <div class="num" id="principalText">0</div>
+        </div>
+        <div class="mini">
+          <h3>أرباح الدعوات</h3>
+          <div class="num" id="referralText">0</div>
+        </div>
+        <div class="mini">
+          <h3>أرباح الفريق</h3>
+          <div class="num" id="teamText">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sub">طلب إيداع</div>
+      <div class="muted">
+        الحد الأدنى 500 USDT - يتم قبول الطلب من الإدارة.
+      </div>
+
+      <div class="field">
+        <input id="depositAmount" type="number" placeholder="قيمة الإيداع بالـ USDT">
+      </div>
+
+      <div class="field">
+        <input id="depositHash" type="text" placeholder="TX Hash (اختياري)">
+      </div>
+
+      <button class="btn btn-dark" onclick="submitDeposit()">إرسال طلب الإيداع</button>
+    </div>
+
+    <div class="card">
+      <div class="sub">طلب سحب</div>
+      <div class="muted">
+        السحب يدوي. اكتب عدد النقاط وعنوان المحفظة.
+      </div>
+
+      <div class="field">
+        <input id="withdrawPoints" type="number" placeholder="عدد النقاط">
+      </div>
+
+      <div class="field">
+        <textarea id="withdrawAddress" placeholder="عنوان المحفظة"></textarea>
+      </div>
+
+      <button class="btn btn-dark" onclick="submitWithdraw()">إرسال طلب السحب</button>
+    </div>
+
+    <div class="card">
+      <div class="sub">آخر طلبات الإيداع</div>
+      <div id="depositHistory">جاري التحميل...</div>
+    </div>
+
+    <div class="card">
+      <div class="sub">آخر طلبات السحب</div>
+      <div id="withdrawHistory">جاري التحميل...</div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item">الرئيسية</a>
+    <a href="market.html" class="nav-item">السوق</a>
+    <a href="sync.html" class="nav-item">الكود</a>
+    <a href="assets.html" class="nav-item active">الأصول</a>
+    <a href="team.html" class="nav-item">الفريق</a>
+  </div>
+
+  <script>
+    async function loadAssetsPage(){
+      const user = await ensureLoggedIn();
+      if(!user) return;
+
+      const wallet = await getMyWallet();
+      if(wallet){
+        document.getElementById("balanceText").textContent = money(wallet.balance_points || 0);
+        document.getElementById("principalText").textContent = money(wallet.principal_points || 0);
+        document.getElementById("referralText").textContent = money(wallet.referral_points || 0);
+        document.getElementById("teamText").textContent = money(wallet.team_profit_points || 0);
+      }
+
+      loadDepositHistory(user.id);
+      loadWithdrawHistory(user.id);
+    }
+
+    async function submitDeposit(){
+      const user = await ensureLoggedIn();
+      if(!user) return;
+
+      const amount = Number(document.getElementById("depositAmount").value || 0);
+      const txHash = document.getElementById("depositHash").value.trim();
+
+      if(amount < 500){
+        alert("الحد الأدنى للإيداع هو 500");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("deposits")
+        .insert({
+          user_id: user.id,
+          amount_usdt: amount,
+          points: amount,
+          tx_hash: txHash,
+          status: "pending"
+        });
+
+      if(error){
+        alert(error.message);
+        return;
+      }
+
+      await supabaseClient.from("activity_feed").insert({
+        user_id: user.id,
+        activity_type: "deposit_request",
+        amount: amount,
+        display_text: `تم إرسال طلب إيداع بقيمة ${amount} نقطة`,
+        created_at: new Date().toISOString()
+      });
+
+      alert("تم إرسال طلب الإيداع");
+      document.getElementById("depositAmount").value = "";
+      document.getElementById("depositHash").value = "";
+      loadDepositHistory(user.id);
+    }
+
+    async function submitWithdraw(){
+      const user = await ensureLoggedIn();
+      if(!user) return;
+
+      const points = Number(document.getElementById("withdrawPoints").value || 0);
+      const walletAddress = document.getElementById("withdrawAddress").value.trim();
+
+      if(points <= 0 || !walletAddress){
+        alert("اكتب عدد النقاط وعنوان المحفظة");
+        return;
+      }
+
+      const wallet = await getMyWallet();
+      if(!wallet || Number(wallet.balance_points || 0) < points){
+        alert("الرصيد غير كافٍ");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("withdraws")
+        .insert({
+          user_id: user.id,
+          points: points,
+          wallet_address: walletAddress,
+          status: "pending"
+        });
+
+      if(error){
+        alert(error.message);
+        return;
+      }
+
+      await supabaseClient.from("activity_feed").insert({
+        user_id: user.id,
+        activity_type: "withdraw_request",
+        amount: points,
+        display_text: `تم إرسال طلب سحب بقيمة ${points} نقطة`,
+        created_at: new Date().toISOString()
+      });
+
+      alert("تم إرسال طلب السحب");
+      document.getElementById("withdrawPoints").value = "";
+      document.getElementById("withdrawAddress").value = "";
+      loadWithdrawHistory(user.id);
+    }
+
+    async function loadDepositHistory(userId){
+      const { data } = await supabaseClient
+        .from("deposits")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      const box = document.getElementById("depositHistory");
+
+      if(!data || !data.length){
+        box.innerHTML = "لا توجد طلبات إيداع";
+        return;
+      }
+
+      box.innerHTML = "";
+      data.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "line";
+        div.innerHTML = `
+          <div><strong>${item.amount_usdt || 0} USDT</strong></div>
+          <div>النقاط: ${item.points || 0}</div>
+          <div>الحالة: <span class="pill">${item.status}</span></div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    async function loadWithdrawHistory(userId){
+      const { data } = await supabaseClient
+        .from("withdraws")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      const box = document.getElementById("withdrawHistory");
+
+      if(!data || !data.length){
+        box.innerHTML = "لا توجد طلبات سحب";
+        return;
+      }
+
+      box.innerHTML = "";
+      data.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "line";
+        div.innerHTML = `
+          <div><strong>${item.points || 0} نقطة</strong></div>
+          <div>الحالة: <span class="pill">${item.status}</span></div>
+        `;
+        box.appendChild(div);
+      });
+    }
+
+    loadAssetsPage();
+  </script>
+</body>
+</html>
